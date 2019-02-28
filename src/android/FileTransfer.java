@@ -69,7 +69,7 @@ public class FileTransfer extends CordovaPlugin {
     public static int NOT_MODIFIED_ERR = 5;
 
     private static HashMap<String, RequestContext> activeRequests = new HashMap<String, RequestContext>();
-    private static final int MAX_BUFFER_SIZE = 16 * 1024;
+    private static final int MAX_BUFFER_SIZE = 1024 * 1024;
 
     private static final class RequestContext {
         String source;
