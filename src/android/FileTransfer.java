@@ -69,7 +69,7 @@ public class FileTransfer extends CordovaPlugin {
     public static int NOT_MODIFIED_ERR = 5;
 
     private static HashMap<String, RequestContext> activeRequests = new HashMap<String, RequestContext>();
-    private static final int MAX_BUFFER_SIZE = 1024 * 1024;
+    private static final int MAX_BUFFER_SIZE = 128 * 1024;
 
     private static final class RequestContext {
         String source;
@@ -808,14 +808,23 @@ public class FileTransfer extends CordovaPlugin {
                             // write bytes to file
                             byte[] buffer = new byte[MAX_BUFFER_SIZE];
                             int bytesRead = 0;
+                            int totalBytesRead = 0;
+                            int cummulate = 0;
                             outputStream = resourceApi.openOutputStream(targetUri);
                             while ((bytesRead = inputStream.read(buffer)) > 0) {
                                 outputStream.write(buffer, 0, bytesRead);
                                 // Send a progress event.
-                                progress.setLoaded(inputStream.getTotalRawBytesRead());
-                                PluginResult progressResult = new PluginResult(PluginResult.Status.OK, progress.toJSONObject());
-                                progressResult.setKeepCallback(true);
-                                context.sendPluginResult(progressResult);
+                                totalBytesRead += bytesRead; //inputStream.getTotalRawBytesRead();
+                                cummulate += bytesRead;
+                                progress.setLoaded(totalBytesRead);
+                                
+                                if (cummulate > 1024*1024*2)
+                                {
+                                    PluginResult progressResult = new PluginResult(PluginResult.Status.OK, progress.toJSONObject());
+                                    progressResult.setKeepCallback(true);
+                                    context.sendPluginResult(progressResult);
+                                    cummulate = 0;
+                                }
                             }
                         } finally {
                             synchronized (context) {
